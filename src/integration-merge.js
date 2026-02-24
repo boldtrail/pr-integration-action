@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import fse from 'fs-extra';
 
 import { tmpdir } from './common.js';
+import { createConflictResolver } from './conflict-resolution.js';
 import git from './git.js';
 
 
@@ -50,6 +51,14 @@ async function integrationMerge({octokit, gitToken, masterBranch, integrationBra
     // to use local setup - comment git.clone above, and uncomment line below
     // await git.checkout(path, masterBranch);
 
+    let resolver;
+    try {
+      resolver = await createConflictResolver(path, git);
+    } catch (e) {
+      core.setFailed(`Conflict resolution config error: ${e.message}`);
+      return false;
+    }
+
     if (await arePrsAlreadyIntegrated(pullRequests, path, masterBranch, integrationBranch)) {
       core.info("All PRs already integrated.");
       return false;
@@ -84,21 +93,20 @@ async function integrationMerge({octokit, gitToken, masterBranch, integrationBra
           let files = await git.listMergeConflicts(path);
           core.info(`       conflicting files: ${files}`);
 
-          let resolved = true
+          let resolved = true;
           for (const file of files) {
-            if (!await solveMergeConflict(git, path, file)) {
-              // there are more conflicts then we can solve...
-              // rollback merge and proceed with next PR
-              core.info(`     ! PR ${prNumber} merge failed. Skipping.`);
-              await git.reset(path);
-              failedPrs.push(pullRequest);
+            if (!await resolver.resolve(file)) {
               resolved = false;
               break;
             }
           }
 
-          // skip this PR merge
-          if (!resolved) continue;
+          if (!resolved) {
+            core.info(`     ! PR ${prNumber} merge failed. Skipping.`);
+            await git.reset(path);
+            failedPrs.push(pullRequest);
+            continue;
+          }
         }
 
         await git.commit(path, commitMessage);
@@ -180,32 +188,6 @@ async function arePrsAlreadyIntegrated(pullRequests, gitPath, masterBranch, inte
 
   const allPrsMerged = prShas.length === mergedShas.length && prShas.every(sha => mergedShas.includes(sha));
   return allPrsMerged;
-}
-
-
-async function solveMergeConflict(git, path, file) {
-
-  if (file === "version.rb") {
-    core.info("       resolve with 'theirs' version.rb");
-    await git.checkoutConflictedFile(path, "version.rb", "theirs");
-    return true
-  }
-  else if (file === "db/schema.rb") {
-    core.info("       resolve with 'theirs' db/schema.rb");
-    await git.checkoutConflictedFile(path, "db/schema.rb", "theirs");
-    return true
-  }
-  else if (file === "package.json") {
-    // this is not perfectly fine
-    // we need to check if the conflict happens on the version line only
-    // and set version to some text, so other file parts can be auto-merged
-    // if there more unresolved conflicts then version -> we can't resolve
-    core.info("       resolve with 'theirs' package.json");
-    await git.checkoutConflictedFile(path, "package.json", "theirs");
-    return true
-  }
-
-  return false
 }
 
 

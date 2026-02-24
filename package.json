@@ -16,6 +16,8 @@
     "@octokit/rest": "^19.0.5",
     "@actions/github": "^2.2.0",
     "fs-extra": "^10.1.0",
+    "js-yaml": "^4.1.0",
+    "minimatch": "^9.0.0",
     "tmp": "^0.2.1"
   }
 
