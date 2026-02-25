@@ -40,5 +40,5 @@ outputs:
     description: Indicates whether any new or updated PRs were integrated. Values 'yes', 'no'
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'entrypoint.js'
