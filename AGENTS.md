@@ -6,8 +6,9 @@ A GitHub Action that automatically integrates approved Pull Requests into a stag
 
 - **Run locally:** `npm start` (runs `node src/main.js`, requires GitHub Action environment variables)
 - **Install dependencies:** `npm install`
+- **Run tests:** `npm test` (vitest, tests in `test/`)
 - **Manual test:** Trigger via GitHub Actions workflow dispatch (`.github/workflows/test_workflow.yml`)
-- No test suite, linter, or build step is configured.
+- No linter or build step is configured.
 
 ## Architecture
 
@@ -61,7 +62,7 @@ Inputs: `repository`, `github_token`, `token_with_workflow_scope`, `master_branc
 
 Output: `haveUpdates` — "yes" or "no"
 
-Runtime: node16 (per action.yml)
+Runtime: node20 (per action.yml)
 
 
 ## Formatting
