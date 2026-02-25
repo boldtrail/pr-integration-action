@@ -1,6 +1,6 @@
 {
   "name": "pr-integration-action",
-  "version": "3.0.3",
+  "version": "4.0.4",
   "description": "GitHub action that integrates approved PRs into specified branch",
   "author": "Brokermint",
   "license": "MIT",
@@ -8,7 +8,12 @@
   "type": "module",
 
   "scripts": {
-    "start": "node src/main.js"
+    "start": "node src/main.js",
+    "test": "vitest run"
+  },
+
+  "devDependencies": {
+    "vitest": "^1.6.0"
   },
 
   "dependencies": {
@@ -16,6 +21,8 @@
     "@octokit/rest": "^19.0.5",
     "@actions/github": "^2.2.0",
     "fs-extra": "^10.1.0",
+    "js-yaml": "^4.1.0",
+    "minimatch": "^9.0.0",
     "tmp": "^0.2.1"
   }
 

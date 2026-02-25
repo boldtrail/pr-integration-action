@@ -1,0 +1,10 @@
+{
+  "name": "test-package",
+<<<<<<< HEAD
+  "version": "1.0.0",
+  "description": "Original description"
+=======
+  "version": "2.0.0",
+  "description": "Changed description"
+>>>>>>> branch
+}
