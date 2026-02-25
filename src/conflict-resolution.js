@@ -8,9 +8,9 @@ import path from 'path';
 const CONFIG_PATH = '.github/conflict-resolution.yml';
 
 const BUILT_IN_RULES = [
-  { pattern: 'version.rb', resolve: 'file', side: 'theirs', ignore: null },
-  { pattern: 'db/schema.rb', resolve: 'file', side: 'theirs', ignore: null },
-  { pattern: 'package.json', resolve: 'lines', side: 'theirs', ignore: [/"version"\s*:/] },
+  { pattern: 'version.rb', scope: 'file', side: 'theirs', ignore: null },
+  { pattern: 'db/schema.rb', scope: 'file', side: 'theirs', ignore: null },
+  { pattern: 'package.json', scope: 'lines', side: 'theirs', ignore: [/"version"\s*:/] },
 ];
 
 
@@ -28,13 +28,13 @@ export async function createConflictResolver(repoDir, git) {
         return false;
       }
 
-      if (rule.resolve === 'file') {
+      if (rule.scope === 'file') {
         core.info(`       resolve with '${rule.side}' ${filePath}`);
         await git.checkoutConflictedFile(repoDir, filePath, rule.side);
         return true;
       }
 
-      // resolve === 'lines'
+      // scope === 'lines'
       return await resolveLineLevel(repoDir, filePath, rule, git);
     }
   };
@@ -62,7 +62,7 @@ async function loadConfig(repoDir) {
   const rules = [];
   for (const [pattern, rule] of Object.entries(config)) {
     if (!rule || typeof rule !== 'object') {
-      throw new Error(`Rule '${pattern}': must be a YAML mapping with at least a 'resolve' key`);
+      throw new Error(`Rule '${pattern}': must be a YAML mapping with at least a 'scope' key`);
     }
     rules.push(validateRule(pattern, rule));
   }
@@ -110,9 +110,9 @@ function validateRule(pattern, rule) {
     throw new Error(`Invalid pattern: must be a non-empty string, got '${pattern}'`);
   }
 
-  const resolve = rule.resolve;
-  if (resolve !== 'file' && resolve !== 'lines') {
-    throw new Error(`Rule '${pattern}': 'resolve' must be "file" or "lines", got "${resolve}"`);
+  const scope = rule.scope;
+  if (scope !== 'file' && scope !== 'lines') {
+    throw new Error(`Rule '${pattern}': 'scope' must be "file" or "lines", got "${scope}"`);
   }
 
   const side = rule.side || 'theirs';
@@ -121,9 +121,9 @@ function validateRule(pattern, rule) {
   }
 
   let compiledIgnore = null;
-  if (resolve === 'lines') {
+  if (scope === 'lines') {
     if (!Array.isArray(rule.ignore) || rule.ignore.length === 0) {
-      throw new Error(`Rule '${pattern}': 'resolve: lines' requires a non-empty 'ignore' array of regex patterns`);
+      throw new Error(`Rule '${pattern}': 'scope: lines' requires a non-empty 'ignore' array of regex patterns`);
     }
     compiledIgnore = rule.ignore.map(pat => {
       try {
@@ -134,7 +134,7 @@ function validateRule(pattern, rule) {
     });
   }
 
-  return { pattern, resolve, side, ignore: compiledIgnore };
+  return { pattern, scope, side, ignore: compiledIgnore };
 }
 
 

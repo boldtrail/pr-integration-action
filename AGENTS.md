@@ -33,27 +33,27 @@ A GitHub Action that automatically integrates approved Pull Requests into a stag
 
 ```yaml
 "version.rb":
-  resolve: file          # file-level: checkout entire file
+  scope: file          # file-level: checkout entire file
   side: theirs           # theirs (default) or ours
 
 "package.json":
-  resolve: lines         # line-level: resolve hunks matching ignore patterns
+  scope: lines         # line-level: resolve hunks matching ignore patterns
   side: theirs
-  ignore:                # required for resolve: lines
+  ignore:                # required for scope: lines
     - '"version"\s*:'    # regex patterns; all non-blank lines must match
 
 "db/*.rb":               # glob patterns supported
-  resolve: file
+  scope: file
   side: theirs
 ```
 
 Built-in defaults (when no config file exists):
 
-| Pattern        | Resolve | Side   | Ignore           |
-|----------------|---------|--------|------------------|
-| `version.rb`   | file    | theirs | —                |
-| `db/schema.rb` | file    | theirs | —                |
-| `package.json` | lines   | theirs | `"version"\s*:`  |
+| Pattern        | Scope | Side   | Ignore          |
+|----------------|-------|--------|-----------------|
+| `version.rb`   | file  | theirs | —               |
+| `db/schema.rb` | file  | theirs | —               |
+| `package.json` | lines | theirs | `"version"\s*:` |
 
 ## Action Configuration
 

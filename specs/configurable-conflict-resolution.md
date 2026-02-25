@@ -14,18 +14,18 @@ Loaded at runtime after cloning. If absent, built-in defaults apply. If present 
 
 ```yaml
 "version.rb":
-  resolve: file
+  scope: file
   side: theirs
 
 "db/schema.rb":
-  resolve: file
+  scope: file
 
 "db/*.rb":
-  resolve: file
+  scope: file
   side: ours
 
 "package.json":
-  resolve: lines
+  scope: lines
   side: theirs
   ignore:
     - '"version"\s*:'
@@ -34,19 +34,19 @@ Loaded at runtime after cloning. If absent, built-in defaults apply. If present 
 
 **Every entry has the same structure:**
 
-| Field           | Required              | Description                                             |
-|-----------------|-----------------------|---------------------------------------------------------|
-| key (top-level) | yes                   | Exact file path or glob pattern                         |
-| `resolve`       | yes                   | `"file"` or `"lines"`                                   |
-| `side`          | no                    | `"theirs"` or `"ours"`. Default: `"theirs"`             |
-| `ignore`        | when `resolve: lines` | Array of regex patterns matching line content to ignore |
+| Field           | Required            | Description                                             |
+|-----------------|---------------------|---------------------------------------------------------|
+| key (top-level) | yes                 | Exact file path or glob pattern                         |
+| `scope`         | yes                 | `"file"` or `"lines"`                                   |
+| `side`          | no                  | `"theirs"` or `"ours"`. Default: `"theirs"`             |
+| `ignore`        | when `scope: lines` | Array of regex patterns matching line content to ignore |
 
 ## Resolution Logic
 
-**File-level (`resolve: file`):**
+**File-level (`scope: file`):**
 Runs `git checkout --{side} -- <file>` then `git add <file>`. Same as current behavior.
 
-**Line-level (`resolve: lines`):**
+**Line-level (`scope: lines`):**
 1. Parse git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) in the conflicted file
 2. For each conflict hunk, check if **all** changed lines (both sides) match at least one `ignore` regex
 3. Matching hunks: resolve by accepting the file-wide `side`
@@ -58,11 +58,11 @@ Runs `git checkout --{side} -- <file>` then `git add <file>`. Same as current be
 
 When **no config file** exists:
 
-| File           | Resolve | Side   | Ignore          |
-|----------------|---------|--------|-----------------|
-| `version.rb`   | file    | theirs | —               |
-| `db/schema.rb` | file    | theirs | —               |
-| `package.json` | lines   | theirs | `"version"\s*:` |
+| File           | Scope | Side   | Ignore          |
+|----------------|-------|--------|-----------------|
+| `version.rb`   | file  | theirs | —               |
+| `db/schema.rb` | file  | theirs | —               |
+| `package.json` | lines | theirs | `"version"\s*:` |
 
 When a config file **exists**, it **fully overrides** these defaults.
 
@@ -76,7 +76,7 @@ When a conflicted file matches multiple rules (e.g. exact path and a glob), the 
 |------------------------------------------------|--------------------------------------|
 | Config file missing                            | Use built-in defaults                |
 | YAML syntax error                              | Fail action immediately              |
-| Invalid rule (bad `resolve`/`side`/`ignore`)   | Fail action immediately              |
+| Invalid rule (bad `scope`/`side`/`ignore`)   | Fail action immediately              |
 | Rule references non-existent file              | Not an error                         |
 | Line-level hunk has no matching ignore pattern | File resolution fails, PR is skipped |
 

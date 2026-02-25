@@ -81,31 +81,31 @@ To customize, create `.github/conflict-resolution.yml` in your repository:
 
 ```yaml
 "version.rb":
-  resolve: file
+  scope: file
   side: theirs
 
 "db/schema.rb":
-  resolve: file
+  scope: file
   side: theirs
 
 "package.json":
-  resolve: lines
+  scope: lines
   side: theirs
   ignore:
     - '"version"\s*:'
 
 "config/*.yml":
-  resolve: file
+  scope: file
   side: ours
 ```
 
-| Field     | Required              | Values              | Description                        |
-|-----------|-----------------------|---------------------|------------------------------------|
-| `resolve` | yes                   | `file` / `lines`    | Resolution strategy                |
-| `side`    | no                    | `theirs` / `ours`   | Which side wins (default: `theirs`)|
-| `ignore`  | when `resolve: lines` | array of regex      | Patterns for auto-resolvable lines |
+| Field    | Required            | Values            | Description                        |
+|----------|---------------------|-------------------|------------------------------------|
+| `scope`  | yes                 | `file` / `lines`  | Resolution strategy                |
+| `side`   | no                  | `theirs` / `ours` | Which side wins (default: `theirs`)|
+| `ignore` | when `scope: lines` | array of regex    | Patterns for auto-resolvable lines |
 
-- **`resolve: file`** — accepts entire file from chosen side
-- **`resolve: lines`** — resolves only if all conflicting lines match `ignore` patterns
+- **`scope: file`** — accepts entire file from chosen side
+- **`scope: lines`** — resolves only if all conflicting lines match `ignore` patterns
 
 PRs with unresolvable conflicts are skipped, and not labeled with Integrated label
