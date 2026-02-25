@@ -91,7 +91,7 @@ To customize, create `.github/conflict-resolution.yml` in your repository:
 "package.json":
   scope: lines
   side: theirs
-  ignore:
+  line_patterns:
     - '"version"\s*:'
 
 "config/*.yml":
@@ -99,13 +99,13 @@ To customize, create `.github/conflict-resolution.yml` in your repository:
   side: ours
 ```
 
-| Field    | Required            | Values            | Description                        |
-|----------|---------------------|-------------------|------------------------------------|
-| `scope`  | yes                 | `file` / `lines`  | Resolution strategy                |
-| `side`   | no                  | `theirs` / `ours` | Which side wins (default: `theirs`)|
-| `ignore` | when `scope: lines` | array of regex    | Patterns for auto-resolvable lines |
+| Field           | Required            | Values            | Description                        |
+|-----------------|---------------------|-------------------|------------------------------------|
+| `scope`         | yes                 | `file` / `lines`  | Resolution strategy                |
+| `side`          | no                  | `theirs` / `ours` | Which side wins (default: `theirs`)|
+| `line_patterns` | when `scope: lines` | array of regex    | Patterns for auto-resolvable lines |
 
 - **`scope: file`** — accepts entire file from chosen side
-- **`scope: lines`** — resolves only if all conflicting lines match `ignore` patterns
+- **`scope: lines`** — resolves only if all conflicting lines match `line_patterns`
 
 PRs with unresolvable conflicts are skipped, and not labeled with Integrated label

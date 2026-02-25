@@ -17,7 +17,7 @@ A GitHub Action that automatically integrates approved Pull Requests into a stag
 
 - **main.js** — Reads GitHub Action inputs, creates Octokit client, calls `integrationMerge()`, sets `haveUpdates` output
 - **integration-merge.js** — Core orchestration: fetches open PRs (max 25, oldest first), filters by approve label, clones repo into temp dir, resets integration branch to master, squash-merges each PR, delegates conflict resolution to `conflict-resolution.js`, writes integration data, pushes, and updates labels
-- **conflict-resolution.js** — Configurable merge conflict resolver. Loads rules from `.github/conflict-resolution.yml` or uses built-in defaults. Supports file-level resolution (checkout theirs/ours) and line-level resolution (auto-resolve hunks matching ignore patterns)
+- **conflict-resolution.js** — Configurable merge conflict resolver. Loads rules from `.github/conflict-resolution.yml` or uses built-in defaults. Supports file-level resolution (checkout theirs/ours) and line-level resolution (auto-resolve hunks matching line_patterns)
 - **git.js** — Thin wrapper spawning `git` subprocesses. Exports functions for clone, fetch PR, branch management, squash merge, push (force-with-lease), conflict listing/resolution, etc. Defines custom `ExitError` class
 - **common.js** — `tmpdir(callback)` utility that creates a temp directory, runs the callback, then cleans up
 
@@ -37,9 +37,9 @@ A GitHub Action that automatically integrates approved Pull Requests into a stag
   side: theirs           # theirs (default) or ours
 
 "package.json":
-  scope: lines         # line-level: resolve hunks matching ignore patterns
+  scope: lines         # line-level: resolve hunks matching line_patterns
   side: theirs
-  ignore:                # required for scope: lines
+  line_patterns:         # required for scope: lines
     - '"version"\s*:'    # regex patterns; all non-blank lines must match
 
 "db/*.rb":               # glob patterns supported
@@ -49,7 +49,7 @@ A GitHub Action that automatically integrates approved Pull Requests into a stag
 
 Built-in defaults (when no config file exists):
 
-| Pattern        | Scope | Side   | Ignore          |
+| Pattern        | Scope | Side   | Line Patterns   |
 |----------------|-------|--------|-----------------|
 | `version.rb`   | file  | theirs | —               |
 | `db/schema.rb` | file  | theirs | —               |

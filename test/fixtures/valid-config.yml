@@ -9,7 +9,7 @@
 "package.json":
   scope: lines
   side: theirs
-  ignore:
+  line_patterns:
     - '"version"\s*:'
 
 "db/*.rb":

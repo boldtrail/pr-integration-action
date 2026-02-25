@@ -8,9 +8,9 @@ import path from 'path';
 const CONFIG_PATH = '.github/conflict-resolution.yml';
 
 const BUILT_IN_RULES = [
-  { pattern: 'version.rb', scope: 'file', side: 'theirs', ignore: null },
-  { pattern: 'db/schema.rb', scope: 'file', side: 'theirs', ignore: null },
-  { pattern: 'package.json', scope: 'lines', side: 'theirs', ignore: [/"version"\s*:/] },
+  { pattern: 'version.rb', scope: 'file', side: 'theirs', linePatterns: null },
+  { pattern: 'db/schema.rb', scope: 'file', side: 'theirs', linePatterns: null },
+  { pattern: 'package.json', scope: 'lines', side: 'theirs', linePatterns: [/"version"\s*:/] },
 ];
 
 
@@ -89,8 +89,8 @@ async function resolveLineLevel(repoDir, filePath, rule, git) {
   }
 
   for (const hunk of hunks) {
-    if (!isHunkIgnorable(hunk, rule.ignore)) {
-      core.info(`       ${filePath}: conflict contains non-ignorable changes`);
+    if (!isHunkResolvable(hunk, rule.linePatterns)) {
+      core.info(`       ${filePath}: conflict contains lines not matching line_patterns`);
       return false;
     }
   }
@@ -120,12 +120,12 @@ function validateRule(pattern, rule) {
     throw new Error(`Rule '${pattern}': 'side' must be "theirs" or "ours", got "${side}"`);
   }
 
-  let compiledIgnore = null;
+  let compiledLinePatterns = null;
   if (scope === 'lines') {
-    if (!Array.isArray(rule.ignore) || rule.ignore.length === 0) {
-      throw new Error(`Rule '${pattern}': 'scope: lines' requires a non-empty 'ignore' array of regex patterns`);
+    if (!Array.isArray(rule.line_patterns) || rule.line_patterns.length === 0) {
+      throw new Error(`Rule '${pattern}': 'scope: lines' requires a non-empty 'line_patterns' array of regex patterns`);
     }
-    compiledIgnore = rule.ignore.map(pat => {
+    compiledLinePatterns = rule.line_patterns.map(pat => {
       try {
         return new RegExp(pat);
       } catch (e) {
@@ -134,7 +134,7 @@ function validateRule(pattern, rule) {
     });
   }
 
-  return { pattern, scope, side, ignore: compiledIgnore };
+  return { pattern, scope, side, linePatterns: compiledLinePatterns };
 }
 
 
@@ -192,13 +192,13 @@ function parseConflictHunks(lines) {
 }
 
 
-function isHunkIgnorable(hunk, ignorePatterns) {
+function isHunkResolvable(hunk, linePatterns) {
   const allLines = [...hunk.oursLines, ...hunk.theirsLines];
   for (const line of allLines) {
     if (line.trim().length === 0) {
       continue;
     }
-    const matchesAny = ignorePatterns.some(re => re.test(line));
+    const matchesAny = linePatterns.some(re => re.test(line));
     if (!matchesAny) {
       return false;
     }

@@ -125,7 +125,7 @@ describe('conflict-resolution', () => {
 
   describe('line-level resolution', () => {
 
-    it('resolves conflict when all lines match ignore patterns', async () => {
+    it('resolves conflict when all lines match line_patterns', async () => {
       const tmpDir = await setupTempRepo('valid-config.yml');
       const git = createMockGit();
 

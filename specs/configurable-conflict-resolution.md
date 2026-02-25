@@ -27,19 +27,19 @@ Loaded at runtime after cloning. If absent, built-in defaults apply. If present 
 "package.json":
   scope: lines
   side: theirs
-  ignore:
+  line_patterns:
     - '"version"\s*:'
     - '"someField"\s*:'
 ```
 
 **Every entry has the same structure:**
 
-| Field           | Required            | Description                                             |
-|-----------------|---------------------|---------------------------------------------------------|
-| key (top-level) | yes                 | Exact file path or glob pattern                         |
-| `scope`         | yes                 | `"file"` or `"lines"`                                   |
-| `side`          | no                  | `"theirs"` or `"ours"`. Default: `"theirs"`             |
-| `ignore`        | when `scope: lines` | Array of regex patterns matching line content to ignore |
+| Field           | Required            | Description                                               |
+|-----------------|---------------------|-----------------------------------------------------------|
+| key (top-level) | yes                 | Exact file path or glob pattern                           |
+| `scope`         | yes                 | `"file"` or `"lines"`                                     |
+| `side`          | no                  | `"theirs"` or `"ours"`. Default: `"theirs"`               |
+| `line_patterns` | when `scope: lines` | Array of regex patterns matching auto-resolvable lines    |
 
 ## Resolution Logic
 
@@ -48,7 +48,7 @@ Runs `git checkout --{side} -- <file>` then `git add <file>`. Same as current be
 
 **Line-level (`scope: lines`):**
 1. Parse git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) in the conflicted file
-2. For each conflict hunk, check if **all** changed lines (both sides) match at least one `ignore` regex
+2. For each conflict hunk, check if **all** changed lines (both sides) match at least one `line_patterns` regex
 3. Matching hunks: resolve by accepting the file-wide `side`
 4. Non-matching hunks: resolution fails for this file
 5. All hunks resolved → write merged file and stage it
@@ -58,7 +58,7 @@ Runs `git checkout --{side} -- <file>` then `git add <file>`. Same as current be
 
 When **no config file** exists:
 
-| File           | Scope | Side   | Ignore          |
+| File           | Scope | Side   | Line Patterns   |
 |----------------|-------|--------|-----------------|
 | `version.rb`   | file  | theirs | —               |
 | `db/schema.rb` | file  | theirs | —               |
@@ -76,9 +76,9 @@ When a conflicted file matches multiple rules (e.g. exact path and a glob), the 
 |------------------------------------------------|--------------------------------------|
 | Config file missing                            | Use built-in defaults                |
 | YAML syntax error                              | Fail action immediately              |
-| Invalid rule (bad `scope`/`side`/`ignore`)   | Fail action immediately              |
+| Invalid rule (bad `scope`/`side`/`line_patterns`) | Fail action immediately         |
 | Rule references non-existent file              | Not an error                         |
-| Line-level hunk has no matching ignore pattern | File resolution fails, PR is skipped |
+| Line-level hunk has no matching line_patterns  | File resolution fails, PR is skipped |
 
 ## Files Changed
 
