@@ -1,0 +1,78 @@
+name: CI and Release
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check version tag does not exist
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if git ls-remote --tags origin | grep -q "refs/tags/v${VERSION}$"; then
+            echo "::error::Tag v${VERSION} already exists. Bump version in package.json first."
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Create version tags
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          VERSION="${{ env.VERSION }}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag "v${VERSION}"
+          git tag -f "v${MAJOR}"
+          git push origin "v${VERSION}" "+v${MAJOR}"
+
+      - name: Write job summary
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          VERSION="${{ env.VERSION }}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          SHA="${{ github.sha }}"
+
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## Release Summary
+
+          | Item         | Value                            |
+          |--------------|----------------------------------|
+          | Version      | \`${VERSION}\`                   |
+          | Commit       | \`${SHA:0:7}\`                   |
+          | Tags Created | \`v${VERSION}\`, \`v${MAJOR}\`   |
+
+          Users can reference this action as:
+          - \`uses: boldtrail/pr-integration-action@v${VERSION}\` - exact version
+          - \`uses: boldtrail/pr-integration-action@v${MAJOR}\` - latest v${MAJOR}.x.x
+          EOF
