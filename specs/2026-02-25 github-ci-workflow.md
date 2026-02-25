@@ -81,12 +81,11 @@ MAJOR=$(echo "$VERSION" | cut -d. -f1)
 # Create exact version tag
 git tag "v${VERSION}"
 
-# Force-move major version tag
-git push origin --delete "v${MAJOR}" 2>/dev/null || true
+# Force-move major version tag (+ prefix forces just that ref)
 git tag -f "v${MAJOR}"
 
-# Push both tags
-git push origin "v${VERSION}" "v${MAJOR}"
+# Push both tags atomically (+ forces v${MAJOR} only)
+git push origin "v${VERSION}" "+v${MAJOR}"
 ```
 
 **Tag Details:**
@@ -206,9 +205,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git tag "v${VERSION}"
-          git push origin --delete "v${MAJOR}" 2>/dev/null || true
           git tag -f "v${MAJOR}"
-          git push origin "v${VERSION}" "v${MAJOR}"
+          git push origin "v${VERSION}" "+v${MAJOR}"
 
       - name: Write job summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

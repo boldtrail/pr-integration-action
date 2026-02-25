@@ -53,9 +53,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git tag "v${VERSION}"
-          git push origin --delete "v${MAJOR}" 2>/dev/null || true
           git tag -f "v${MAJOR}"
-          git push origin "v${VERSION}" "v${MAJOR}"
+          git push origin "v${VERSION}" "+v${MAJOR}"
 
       - name: Write job summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
