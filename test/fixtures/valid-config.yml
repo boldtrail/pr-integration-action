@@ -1,0 +1,17 @@
+"version.rb":
+  scope: file
+  side: theirs
+
+"db/schema.rb":
+  scope: file
+  side: theirs
+
+"package.json":
+  scope: lines
+  side: theirs
+  ignore:
+    - '"version"\s*:'
+
+"db/*.rb":
+  scope: file
+  side: ours
