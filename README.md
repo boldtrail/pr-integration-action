@@ -24,9 +24,9 @@ GitHub Action that automatically integrates approved Pull Requests into a stagin
 
 ## Outputs
 
-| Output        | Description                                          |
-|---------------|------------------------------------------------------|
-| `haveUpdates` | `"yes"` if PRs were integrated, `"no"` otherwise     |
+| Output        | Description                                              |
+|---------------|----------------------------------------------------------|
+| `haveUpdates` | `"yes"` if any PRs were integrated, `"no"` otherwise     |
 
 ## Usage
 
@@ -58,7 +58,7 @@ jobs:
           fetch-depth: 0
 
       - name: Integrate PRs
-        uses: boldtrail/pr-integration-action@v3
+        uses: boldtrail/pr-integration-action@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           token_with_workflow_scope: ${{ secrets.GHUB_TOKEN_WITH_WORKFLOW_SCOPE }}
